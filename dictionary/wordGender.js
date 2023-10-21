@@ -1,3 +1,10 @@
+export const pronounsOpts = [
+    { label: "Neutros", value: "N" },
+    { label: "Masculinos", value: "M" },
+    { label: "Femininos", value: "F" },
+    { label: "Alternados", value: "A" },
+];
+
 function wordGender(word, pronoun) {
     const dictionary = require("./dictionary.json");
 

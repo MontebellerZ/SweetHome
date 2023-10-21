@@ -1,24 +1,41 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect } from "react";
-
-const getUser = async (navigation) => {
-    const userStorage = await AsyncStorage.getItem("user");
-
-    if (!userStorage) return navigation.navigate("Initial");
-
-    const user = JSON.parse(userStorage);
-
-    navigation.setParams({ user });
-};
+import { GetUser, RemoveUser } from "../../api";
+import { Button, Text } from "react-native-paper";
 
 function Home({ route, navigation }) {
     useEffect(() => {
-        getUser(navigation);
+        GetUser().then((user) => {
+            if (!user) {
+                return navigation.reset({
+                    index: 0,
+                    routes: [{ name: "Initial" }],
+                });
+            }
+
+            navigation.setParams({ user });
+        });
     }, []);
 
-    const { user } = route;
+    const { user } = route?.params || {};
 
-    return <></>;
+    return (
+        <>
+            <Button
+                onPress={() =>
+                    RemoveUser().then(() => {
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "Initial" }],
+                        });
+                    })
+                }
+                mode="contained"
+            >
+                teste
+            </Button>
+        </>
+    );
 }
 
 export default Home;

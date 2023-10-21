@@ -1,30 +1,52 @@
-import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
-import { View } from "react-native";
-import wordGender from "../../dictionary/wordGender";
-import { Button, Dialog, Input, Text } from "@rneui/themed";
+import styles from "./styles";
+import { useState, useRef, useEffect } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { Button } from "@rneui/themed";
+import { Dialog, Text, Button as Button2, Portal, TextInput, HelperText } from "react-native-paper";
+import DropDown from "react-native-paper-dropdown";
+import wordGender, { pronounsOpts } from "../../dictionary/wordGender";
+import { SaveUser } from "../../api";
+import { DatePickerInput, DatePickerModal } from "react-native-paper-dates";
 
-const pronounsOpts = [
-    { label: "Neutros", value: "N" },
-    { label: "Masculinos", value: "M" },
-    { label: "Femininos", value: "F" },
-    { label: "Alternados", value: "A" },
-];
+function Initial({ navigation }) {
+    const firstLoadUsername = useRef(true);
+    const firstLoadPronouns = useRef(true);
+    const firstLoadBirthday = useRef(true);
 
-function Initial() {
     const [username, setUsername] = useState("");
     const [pronouns, setPronouns] = useState("");
+    const [birthday, setBirthday] = useState(undefined);
+
+    const [showPronouns, setShowPronouns] = useState(false);
+    const [showBirthday, setShowBirthday] = useState(false);
 
     const [warnDialog, setWarnDialog] = useState();
     const [confirmDialog, setConfirmDialog] = useState();
 
-    const handleConfirmation = () => {};
+    const usernameError = !firstLoadUsername.current && !username;
+    const pronounsError = !firstLoadPronouns.current && !pronouns;
+    const birthdayError = !firstLoadBirthday.current && !birthday;
+
+    const handleConfirmation = () => {
+        SaveUser(username, pronouns).then((user) => {
+            return navigation.reset({
+                index: 0,
+                routes: [{ name: "Home", params: { user } }],
+            });
+        });
+    };
 
     const handleSubmit = async () => {
-        if (!username)
-            return setWarnDialog({ title: "Oops!", message: "Você não escolheu seu nome!" });
-        if (!pronouns)
-            return setWarnDialog({ title: "Oops!", message: "Você não escolheu seus pronomes!" });
+        if (!username) {
+            firstLoadUsername.current = false;
+            setWarnDialog({ title: "Oops!", message: "Você não escolheu seu nome!" });
+            return;
+        }
+        if (!pronouns) {
+            firstLoadPronouns.current = false;
+            setWarnDialog({ title: "Oops!", message: "Você não escolheu seus pronomes!" });
+            return;
+        }
 
         const pronounsLabel = pronounsOpts.find(({ value }) => value === pronouns).label;
 
@@ -35,29 +57,100 @@ function Initial() {
         setConfirmDialog({ pronounsLabel, words, username });
     };
 
-    return (
-        <View>
-            <View>
-                <Text>Meu nome é:</Text>
+    useEffect(() => {
+        if (username) firstLoadUsername.current = false;
+    }, [username]);
 
-                <Input value={username} onChangeText={setUsername} placeholder="Meu nome é:" />
+    useEffect(() => {
+        if (pronouns) firstLoadPronouns.current = false;
+    }, [pronouns]);
+
+    return (
+        <View style={styles.container}>
+            <View>
+                <Text variant="titleMedium" style={styles.label}>
+                    Meu nome é:
+                </Text>
+
+                <TextInput
+                    mode="outlined"
+                    label="Nome"
+                    placeholder="Nome"
+                    value={username}
+                    onChangeText={setUsername}
+                    error={usernameError}
+                />
+                <HelperText type="error" visible={usernameError}>
+                    Escolha seu nome!
+                </HelperText>
             </View>
 
-            <View>
-                <Text>Eu uso pronomes:</Text>
+            <View style={styles.row}>
+                <View style={styles.rowItem}>
+                    <Text variant="titleMedium" style={styles.label}>
+                        Meus pronomes são:
+                    </Text>
 
-                <Picker
-                    placeholder="Eu uso pronomes:"
-                    prompt="Eu uso pronomes:"
-                    selectedValue={pronouns}
-                    onValueChange={(val) => setPronouns(val)}
-                >
-                    <Picker.Item label={"Selecione"} value={""} />
+                    <DropDown
+                        mode={"outlined"}
+                        label={"Pronomes"}
+                        visible={showPronouns}
+                        showDropDown={() => setShowPronouns(true)}
+                        onDismiss={() => setShowPronouns(false)}
+                        list={pronounsOpts}
+                        value={pronouns}
+                        setValue={setPronouns}
+                    />
+                    <HelperText type="error" visible={pronounsError}>
+                        Escolha seus pronomes!
+                    </HelperText>
+                </View>
 
-                    {pronounsOpts.map(({ label, value }, i) => (
-                        <Picker.Item key={i} label={label} value={value} />
-                    ))}
-                </Picker>
+                <View style={styles.rowItem}>
+                    <Text variant="titleMedium" style={styles.label}>
+                        Meu aniversário é dia:
+                    </Text>
+
+                    <View style={{ position: "relative" }}>
+                        <TextInput
+                            mode="outlined"
+                            label="Aniversário"
+                            placeholder="Aniversário"
+                            value={birthday?.toString()}
+                            right={<TextInput.Icon icon="calendar-account" />}
+                        />
+
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                setShowBirthday(true);
+                            }}
+                            style={{
+                                position: "absolute",
+                                left: 0,
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                zIndex: 1000,
+                            }}
+                        />
+                    </View>
+                    <DatePickerModal
+                        locale="en-GB"
+                        mode="single"
+                        visible={showBirthday}
+                        date={birthday}
+                        onDismiss={() => {
+                            setShowBirthday(false);
+                        }}
+                        onConfirm={({ date }) => {
+                            setShowBirthday(false);
+                            setBirthday(date);
+                        }}
+                    />
+                    <HelperText type="error" visible={birthdayError}>
+                        Escolha seu aniversário!
+                    </HelperText>
+                </View>
             </View>
 
             <Button
@@ -67,26 +160,42 @@ function Initial() {
                 size="lg"
                 raised
                 onPress={handleSubmit}
+                style={styles.submit}
             />
 
-            <Dialog isVisible={!!warnDialog} onBackdropPress={() => setWarnDialog()}>
-                <Dialog.Title title={warnDialog?.title} />
+            <Portal>
+                <Dialog visible={!!warnDialog} onDismiss={() => setWarnDialog()}>
+                    <Dialog.Title style={styles.dialogTitle}>{warnDialog?.title}</Dialog.Title>
 
-                <Text>{warnDialog?.message}</Text>
-            </Dialog>
+                    <Dialog.Content>
+                        <Text variant="bodyMedium">{warnDialog?.message}</Text>
+                    </Dialog.Content>
+                </Dialog>
 
-            <Dialog isVisible={!!confirmDialog} onBackdropPress={() => setConfirmDialog()}>
-                <Dialog.Title title="Confirmar" />
+                <Dialog visible={!!confirmDialog} onDismiss={() => setConfirmDialog()}>
+                    <Dialog.Icon icon="cloud-check" />
 
-                <Text>{`Você escolheu os pronomes ${confirmDialog?.pronounsLabel} e ser ${confirmDialog?.words.chamada} de ${confirmDialog?.username}!`}</Text>
+                    <Dialog.Title style={styles.dialogTitle}>Confirmar</Dialog.Title>
 
-                <Text>Deseja confirmar?</Text>
+                    <Dialog.Content>
+                        <Text style={styles.dialogText} variant="bodyMedium">
+                            Você escolheu os pronomes{" "}
+                            <Text style={styles.dialogBold}>{confirmDialog?.pronounsLabel}</Text> e
+                            ser {confirmDialog?.words.chamada} de{" "}
+                            <Text style={styles.dialogBold}>{confirmDialog?.username}</Text>!
+                        </Text>
 
-                <Dialog.Actions>
-                    <Dialog.Button title="Sim!" onPress={handleConfirmation} />
-                    <Dialog.Button title="Não!" onPress={() => setConfirmDialog()} />
-                </Dialog.Actions>
-            </Dialog>
+                        <Text style={styles.dialogText} variant="bodyMedium">
+                            Deseja confirmar?
+                        </Text>
+                    </Dialog.Content>
+
+                    <Dialog.Actions style={styles.dialogActions}>
+                        <Button2 onPress={() => handleConfirmation()}>Sim!</Button2>
+                        <Button2 onPress={() => setConfirmDialog()}>Não!</Button2>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
     );
 }
