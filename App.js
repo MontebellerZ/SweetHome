@@ -1,19 +1,20 @@
 import { StatusBar } from "expo-status-bar";
-import Router from "./router";
-import Theme from "./theme";
-import { View } from "react-native";
-import { enGB, registerTranslation } from "react-native-paper-dates";
-
-registerTranslation("en-GB", enGB);
+import Router from "./src/router";
+import Theme from "./src/theme";
+import { useFonts } from "expo-font";
 
 function App() {
+    const [fontsLoaded] = useFonts({
+        "Curlz-MT": require("./assets/fonts/curlz-mt.ttf"),
+    });
+
+    if (!fontsLoaded) return <></>;
+
     return (
-        // <View style={{ flex: 1, transform: [{ rotate: "180deg" }] }}>
-            <Theme>
-                <Router />
-                <StatusBar style="auto" />
-            </Theme>
-        // </View>
+        <Theme>
+            <StatusBar style="auto" />
+            <Router />
+        </Theme>
     );
 }
 

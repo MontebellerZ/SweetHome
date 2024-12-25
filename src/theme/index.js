@@ -1,6 +1,15 @@
 import { ThemeProvider, createTheme } from "@rneui/themed";
 import { MD3LightTheme, PaperProvider } from "react-native-paper";
 
+export const basicColors = {
+    primary: "#FF70A6",
+    secondary: "#70D6FF",
+    success: "#E9FF70",
+    warning: "#FFD670",
+    error: "#FF9770",
+    background: "#F7F7F7",
+};
+
 const themeRNE = createTheme({
     lightColors: {
         primary: "#FF70A6",

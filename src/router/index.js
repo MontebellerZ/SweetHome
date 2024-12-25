@@ -22,7 +22,7 @@ function Router() {
             }}
         >
             <Stack.Navigator initialRouteName="Home">
-                <Stack.Screen name="Initial" component={Initial} />
+                <Stack.Screen name="Initial" component={Initial} options={{ headerShown: false }} />
                 <Stack.Screen name="Home" component={Home} />
             </Stack.Navigator>
         </NavigationContainer>

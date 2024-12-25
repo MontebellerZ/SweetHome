@@ -1,8 +1,8 @@
 export const pronounsOpts = [
-    { label: "Neutros", value: "N" },
-    { label: "Masculinos", value: "M" },
-    { label: "Femininos", value: "F" },
-    { label: "Alternados", value: "A" },
+    { label: "Neutros (Elu/Delu)", value: "N" },
+    { label: "Masculinos (Ele/Dele)", value: "M" },
+    { label: "Femininos (Ela/Dela)", value: "F" },
+    // { label: "Alternados", value: "A" },
 ];
 
 function wordGender(word, pronoun) {
